@@ -264,14 +264,221 @@ vue实现数据双向绑定主要是:
      不同点：
         AngularJS的学习成本高，比如增加了Dependency Injection特性，而Vue.js本身提供的API都比较简单、直观；
         在性能上，
-        AngularJS依赖对数据做脏检查，所以Watcher越多越慢；           Vue.js使用基于依赖追踪的观察并且使用异步队列更新，所有的数据都是独立触发的。
+        AngularJS依赖对数据做脏检查，所以Watcher越多越慢；           
+        Vue.js使用基于依赖追踪的观察并且使用异步队列更新，所有的数据都是独立触发的。
 2.与React的区别
+    相同点：
+        React采用特殊的JSX语法，Vue.js在组件开发中也推崇编写.vue特殊文件格式，对文件内容都有一些约定，两者都需要编译后使用；
+        中心思想相同：一切都是组件，组件实例之间可以嵌套；
+        都提供合理的钩子函数，可以让开发者定制化地去处理需求；
+        都不内置列数AJAX，Route等功能到核心包，而是以插件的方式加载；
+        在组件开发中都支持mixins的特性。
+    不同点：
+        React采用的Virtual DOM会对渲染出来的结果做脏检查；
+        Vue.js在模板中提供了指令，过滤器等，可以非常方便，快捷地操作Virtual DOM。
+```
 
+24.**vue路由的钩子函数**
+
+```js
+首页可以控制导航跳转，beforeEach，afterEach等，一般用于页面title的修改。一些需要登录才能调整页面的重定向功能。
+beforeEach主要有3个参数to，from，next：
+to：route即将进入的目标路由对象，
+from：route当前导航正要离开的路由
+next：function一定要调用该方法resolve这个钩子。执行效果依赖next方法的调用参数。可以控制网页的跳转。
+```
+
+25**.vuex是什么？怎么使用？哪种功能场景使用它**
+
+```js
+只用来读取的状态集中放在store中； 
+改变状态的方式是提交mutations，这是个同步的事物； 
+异步逻辑应该封装在action中。
+
+在main.js引入store，注入。新建了一个目录store，….. export 。
+场景有：单页应用中，组件之间的状态、音乐播放、登录状态、加入购物车
+![vuex图片](https://image-static.segmentfault.com/131/469/131469924-5931124f9479e)
+          
+state
+    Vuex 使用单一状态树,即每个应用将仅仅包含一个store 实例，但单一状态树和模块化并不冲突。
+    存放的数据状态，不可以直接修改里面的数据。
+mutations
+    mutations定义的方法动态修改Vuex 的 store 中的状态或数据。
+getters
+    类似vue的计算属性，主要用来过滤一些数据。
+action 
+    actions可以理解为通过将mutations里面处里数据的方法变成可异步的处理数据的方法，简单的说就是异步操作数据。view 层通过 store.dispath 来分发 action。
+```
+    const store = new Vuex.Store({ //store实例
+        state: {
+            count: 0
+        },
+        mutations: {                
+            increment (state) {
+                state.count++
+            }
+        },
+        actions: { 
+            increment (context) {
+                context.commit('increment')
+            }
+        }
+    })
+    ```
+modules
+    项目特别复杂的时候，可以让每一个模块拥有自己的state、mutation、action、getters,使得结构非常清晰，方便管理。
+    ```
+    const moduleA = {
+        state: { ... },
+        mutations: { ... },
+        actions: { ... },
+        getters: { ... }
+    }
+    const moduleB = {
+        state: { ... },
+        mutations: { ... },
+        actions: { ... }
+    }
+    const store = new Vuex.Store({
+        modules: {
+            a: moduleA,
+            b: moduleB
+        }
+    })
+    
+    ```
+
+26.**vue如何自定义一个过滤器**
+
+~~~js
+```js
+html代码：
+<div id="app">
+    <input type="text" v-model="msg" />
+    {{msg| capitalize }}
+</div>
+```
+JS代码:
+    ```
+    var vm=new Vue({
+        el:"#app",
+        data:{
+            msg:''
+        },
+        filters: {
+          capitalize: function (value) {
+            if (!value) return ''
+            value = value.toString()
+            return value.charAt(0).toUpperCase() + value.slice(1)
+          }
+        }
+    })
+    ```
+全局定义过滤器:
+    ```
+    Vue.filter('capitalize', function (value) {
+        if (!value) return ''
+        value = value.toString()
+        return value.charAt(0).toUpperCase() + value.slice(1)
+    })
+    ```
+过滤器接收表达式的值 (msg) 作为第一个参数。capitalize 过滤器将会收到 msg的值作为第一个参数
+~~~
+27.**对keep-alive 的了解**
+
+```js
+
+​```js
+keep-alive是 Vue 内置的一个组件，可以使被包含的组件保留状态，或避免重新渲染。
+在vue 2.1.0 版本之后，keep-alive新加入了两个属性: include(包含的组件缓存) 与 exclude(排除的组件不缓存，优先级大于include) 
+使用方法:
+<keep-alive include='include_components' exclude='exclude_components'>
+    <component>
+    <!-- 该组件是否缓存取决于include和exclude属性 -->
+    </component>
+</keep-alive>
+​```
+参数解释:
+    include - 字符串或正则表达式，只有名称匹配的组件会被缓存
+    exclude - 字符串或正则表达式，任何名称匹配的组件都不会被缓存
+    include 和 exclude 的属性允许组件有条件地缓存。二者都可以用“，”分隔字符串、正则表达式、数组。当使用正则或者是数组时，要记得使用v-bind 。
+使用示例:
+    ```
+    <!-- 逗号分隔字符串，只有组件a与b被缓存。 -->
+    <keep-alive include="a,b">
+      <component></component>
+    </keep-alive>
+<!-- 正则表达式 (需要使用 v-bind，符合匹配规则的都会被缓存) -->
+<keep-alive :include="/a|b/">
+  <component></component>
+</keep-alive>
+
+<!-- Array (需要使用 v-bind，被包含的都会被缓存) -->
+<keep-alive :include="['a', 'b']">
+  <component></component>
+</keep-alive>
+​```
+```
+**28.css只在当前组件起作用**
+
+```
+在style标签中写入scoped即可 例如：`<style scoped></style>
+```
+**29.v-if 和 v-show 区别**
+
+```
+v-if按照条件是否渲染，v-show是display的block或none
+```
+ **30.$route和$router的区别**
+```
+$route是“路由信息对象”，包括path，params，hash，query，fullPath，matched，name等路由信息参数。而$router是“路由实例”对象包括了路由的跳转方法，钩子函数等
+```
+**31.vue常用的修饰符**
+
+```
+.prevent: 提交事件不再重载页面；
+.stop: 阻止单击事件冒泡；
+.self: 当事件发生在该元素本身而不是子元素的时候会触发；
+.capture: 事件侦听，事件发生的时候会调用
+```
+**32.vue中 key 值的作用**
+
+```
+当 Vue.js 用 v-for 正在更新已渲染过的元素列表时，它默认用“就地复用”策略。如果数据项的顺序被改变，Vue 将不会移动 DOM 元素来匹配数据项的顺序， 而是简单复用此处每个元素，并且确保它在特定索引下显示已被渲染过的每个元素。key的作用主要是为了高效的更新虚拟DOM
+```
+**33.什么是vue的计算属性**
+
+```
+在模板中放入太多的逻辑会让模板过重且难以维护，在需要对数据进行复杂处理，且可能多次使用的情况下，尽量采取计算属性的方式。    
+好处：        
+1. 使得数据处理结构清晰；        
+2. 依赖于数据，数据更新，处理结果自动更新；        
+3. 计算属性内部this指向vm实例；        
+4. 在template调用时，直接写计算属性名即可；        
+5. 常用的是getter方法，获取数据，也可以使用set方法改变数据；        
+6. 相较于methods，不管依赖的数据变不变，methods都会重新计算，但是依赖数据不变的时候computed从缓存中获取，不会重新计算
+
+
+
+
+
+```
+**34.vue等单页面应用及其优缺点** 
+
+```js
+优点：
+    Vue 的目标是通过尽可能简单的 API 实现响应的数据绑定和组合的视图组件，核心是一个响应的数据绑定系统。MVVM、数据驱动、组件化、轻量、简洁、高效、快速、模块友好。
+缺点：
+    不支持低版本的浏览器，最低只支持到IE9；不利于SEO的优化（如果要支持SEO，建议通过服务端来进行渲染组件）；第一次加载首页耗时相对长一些；不可以使用浏览器的导航按钮需要自行实现前进、后退。
 ```
 
 
 
-​          事件循环
+## axios
+
+
+
+          事件循环
 
 **项目介绍1**
 
@@ -289,19 +496,19 @@ vue实现数据双向绑定主要是:
 
 **登录流程：**
 
-> ​        当我点击登录的时候，我先判断我输入的值是否符合规则，如果符合，就把参数拼接到接口上，然后请求，后台会返回一个token值，我把token放在本地存储中，在全局路由守卫中，当我要访问一个需要登录才可以进入的路由的时候，我就判断本地存储中有没有这个token值，如果有，就进入这个路由，如果没有，就返回登录页面登录。
+>         当我点击登录的时候，我先判断我输入的值是否符合规则，如果符合，就把参数拼接到接口上，然后请求，后台会返回一个token值，我把token放在本地存储中，在全局路由守卫中，当我要访问一个需要登录才可以进入的路由的时候，我就判断本地存储中有没有这个token值，如果有，就进入这个路由，如果没有，就返回登录页面登录。
 
 **Loading动画怎么实现：**
 
-> ​        用axios拦截器实现loading动画效果      首先新建一个loading组件，里面写一些动画效果，然后在vuex里面写一个状态来控制我的loading动画组件的显示隐藏，然后在全局main.js中配置axios拦截器，分别定义一个请求拦截器和响应拦截器，在请求数据时执行请求拦截器，改变我vuex里面定义的状态，让loading动画显示，反之，数据请求到之后，隐藏loading动画即可。
+>         用axios拦截器实现loading动画效果      首先新建一个loading组件，里面写一些动画效果，然后在vuex里面写一个状态来控制我的loading动画组件的显示隐藏，然后在全局main.js中配置axios拦截器，分别定义一个请求拦截器和响应拦截器，在请求数据时执行请求拦截器，改变我vuex里面定义的状态，让loading动画显示，反之，数据请求到之后，隐藏loading动画即可。
 
 **图片懒加载怎么实现：**
 
-> ​        我们先不给<img>设置src，把图片真正的URL放在另一个属性data-src中，在需要的时候也就是图片进入可视区域的之前，将URL取出放到src中。
+>         我们先不给<img>设置src，把图片真正的URL放在另一个属性data-src中，在需要的时候也就是图片进入可视区域的之前，将URL取出放到src中。
 
 **移动端的性能优化：**
 
-> ​         首屏加载和按需加载，懒加载	资源预加载	图片压缩处理，使用base64内嵌图片	合理缓存dom对象	使用touchstart代替click（click 300毫秒的延迟）	利用transform:translateZ(0)，开启硬件GUP加速	不滥用web字体，不滥用float（布局计算消耗性能），减少font-size声明	使用viewport固定屏幕渲染，加速页面渲染内容	尽量使用事件代理，避免直接事件绑定。
+>          首屏加载和按需加载，懒加载	资源预加载	图片压缩处理，使用base64内嵌图片	合理缓存dom对象	使用touchstart代替click（click 300毫秒的延迟）	利用transform:translateZ(0)，开启硬件GUP加速	不滥用web字体，不滥用float（布局计算消耗性能），减少font-size声明	使用viewport固定屏幕渲染，加速页面渲染内容	尽量使用事件代理，避免直接事件绑定。
 
 **项目介绍2**
 
@@ -311,10 +518,11 @@ vue实现数据双向绑定主要是:
 
 **后台权限管理是怎么实现的：**
 
-> ​       定义两张路由表，一张是静态路由表（无需权限的使用），另一张是权限路由表（和后台返回的权限进行匹配使用）。用户登录，判断登录是否成功，登录成功后判断是否获取用户权限列表，获取到后，将权限数据存储到Vuex中。用Vuex中的权限数据和定义好的需要访问权限的路由表进行比对。比对完后生成当前账户对应的权限路由表。通过addRouters方法动态添加路由规则，生成可访问的侧边栏菜单。
+>        定义两张路由表，一张是静态路由表（无需权限的使用），另一张是权限路由表（和后台返回的权限进行匹配使用）。用户登录，判断登录是否成功，登录成功后判断是否获取用户权限列表，获取到后，将权限数据存储到Vuex中。用Vuex中的权限数据和定义好的需要访问权限的路由表进行比对。比对完后生成当前账户对应的权限路由表。通过addRouters方法动态添加路由规则，生成可访问的侧边栏菜单。
 
 **跨域问题，怎么解决的：**
 
 > **jsonp跨域原理：** jsonp是请求之后  后台会封装好的一段json，并且把数据放在一个callback回调函数中，并返回一个js文件，动态的引入这个文件，调用这个callback回调函数，进行数据访问。
 >
 > **反向代理跨域：**客户端发送请求时不直接到服务器而是先到代理的中间层在这里将localhost：8080的这个域名装换为www.njc.com，再将请求发送到服务器这样在服务器端收到的请求就是使用的www.njc.com域名同理，当服务器返回数据的时候，也是先到代理的中间层将www.njc.com转换成localhos：8080；这样在客户端也是在相同域名下访问的了。
+
